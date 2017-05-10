@@ -15,7 +15,7 @@
 　config.php　　配置文件  
 　filter.php　　全局路由配置  
 　register.php　　workerman实现的 可插拔负载均衡服务器，简单实用  
-　start_global_server.php　　缓存服务启动入口，如在配置文件开启缓存，请先启动此服务，基于GlobalData
+　start_global_server.php　　缓存服务启动入口，如在配置文件开启缓存，请先启动此服务，基于GlobalData  
 　start.php　　项目启动入口  ， 修改代码请重启，如果是linux系统，参考workerman文档文件监控模块，实现热更新
 　workerman_web_ape.sql　　此框架包含例子，请引入sql运行  
  
