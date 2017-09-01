@@ -1,4 +1,5 @@
 # workerman_web_ape
+最新2.0版本请去QQ群342016184   下载  
 使用workerman封装的一个完整的web框架，不依赖任何其他服务，比如nginx等，自己实现了静态服务，MVC封装，支持分布式部署，性能强悍，框架优化很多细节，使用非常简单。  
 性能是传统php开发的10倍以上，传送门  http://www.workerman.net/bench  
 由于所有代码都是php实现，所以可控性非常好
@@ -24,8 +25,8 @@
 ## 路由详解
 路由:根据url找寻controller下面的类和方法  
 	1-> 127.0.0.1　　找默认模块　默认控制器　里面的默认方法  
-	2-> 127.0.0.1/user  找默认模块　默认控制器　里面的user方法  
-	3-> 127.0.0.1/user/login  找默认模块　UserController　下面的User类里面的login方法  
+	2-> 127.0.0.1/user  找user模块　默认控制器　里面的默认方法  
+	3-> 127.0.0.1/user/login  找user模块　LoginController　下面的默认方法  
 	4-> 127.0.0.1/admin/admin_user/login  找admin模块(z_admin)　下面的AdminUserController　里面的login方法  
 
 ## 数据库操作详解
