@@ -95,7 +95,7 @@ class Sendfile {
 		$header .= "Connection: keep-alive\r\n";
 		$header .= $modified_time;
 		$header .= "Content-Length: $file_size\r\n\r\n";
-		$trunk_limit_size = 1024 * 1024;
+		$trunk_limit_size = 1024 * 1024 * 10;
 		if ($file_size < $trunk_limit_size) {
 			$connection->send ( $header . file_get_contents ( $file_path ), true );
 			//$connection->close();

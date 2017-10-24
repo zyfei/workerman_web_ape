@@ -1,9 +1,6 @@
 <?php
-use Workerman\Worker;
 use ape\App;
-use ape\db\MySQL;
 use ape\view\View;
-use GlobalData\Client;
 use Workerman\Connection\AsyncTcpConnection;
 
 global $config;
@@ -18,42 +15,42 @@ $app->count = $config ["worker_count"];
 $app->onStart = function ($app) {
 	// 创建数据库连接
 	global $config;
-	global $db;
-	global $database;
-	$db = new MySQL ( $database ['host'], $database ['port'], $database ['username'], $database ['password'], $database ['db_name'] );
+	require_once RUN_DIR."_lib/ape/init_db.php";
 	
 	// 引入视图
 	global $view;
 	$view = new View ();
-	
-	// 引入globalData
-	if ($database ["cache"] === true) {
-		global $global;
-		$global = new Client ( $database ["cache_ips"] );
+	// 删除所有垃圾视图，重新生成、
+	if($app->id==0){
+		foreach ( glob ( RUN_DIR . 'z_*/storage/views/*.php' ) as $start_file ) {
+			unlink($start_file);
+		}
 	}
-	
+	if($app->id==0){
 	// 连接负载均衡服务器
-	foreach ( $config ["register_address"] as $n ) {
-		$connection_reg = new AsyncTcpConnection ( "tcp://" . $n );
-		$connection_reg->onConnect = function ($connection_reg) {
-			global $config;
-			echo "register server connect success\n";
-			$connection_reg->send ( "register_" . $config ["listen_address"] );
-			$connection_reg->close ();
-		};
-		
-		$connection_reg->onError = function ($connection_reg) {
-			echo "register server connect error\n";
-			$connection_reg->close ();
-		};
-		
-		$connection_reg->connect ();
+		foreach ( $config ["register_address"] as $n ) {
+			$connection_reg = new AsyncTcpConnection ( "tcp://" . $n );
+			$connection_reg->onConnect = function ($connection_reg) {
+				global $config;
+				echo "register server connect success\n";
+				$connection_reg->send ( "register_" . $config ["listen_address"] );
+				$connection_reg->close ();
+			};
+			
+			$connection_reg->onError = function ($connection_reg) {
+				echo "register server connect error\n";
+				$connection_reg->close ();
+			};
+			
+			$connection_reg->connect ();
+		}
 	}
-	// 连接负载均衡服务器结束
+	
+	//链接UDP日志服务器 start
+	global $log_connection;
+	$log_connection = new AsyncTcpConnection ( $config["log_server_address"]);
+	$log_connection->connect ();
+	//链接UDP日志服务器 end
 };
-require_once "filter.php";
 
-// 日志
-Worker::$logFile = __DIR__ . $config ["logFile"];
-// 访问日志
-Worker::$stdoutFile = __DIR__ . $config ["stdoutFile"];
+require_once RUN_DIR."filter.php";

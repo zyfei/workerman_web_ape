@@ -7,6 +7,7 @@ use Workerman\Protocols\Http;
 use controller;
 use ape\http\Sendfile;
 use Workerman\Protocols\HttpCache;
+require_once  RUN_DIR.'_lib/ape/StatisticClient.php';
 
 class App extends Worker {
 	private $conn = false;
@@ -93,7 +94,7 @@ class App extends Worker {
 		$this->access_log [7] = round ( microtime_float () - $this->access_log [7], 4 );
 		global $config;
 		if ($config ["debug"]) {
-			echo implode ( " - ", $this->access_log ) . "\n";
+			dd_log(implode ( " - ", $this->access_log ) . "\n","request");
 		}
 	}
 	
@@ -105,17 +106,21 @@ class App extends Worker {
 	 */
 	public function onStaticFile($connection, $data) {
 		$uri = $data ["server"] ["REQUEST_URL"];
+		//统计开始		
+		\StatisticClient::tick("static", $uri);
 		
 		$file = RUN_DIR . 'static/' . $uri;
 		$path = realpath ( $file );
 		// 如果没有这个文件
 		if (! $path) {
+			\StatisticClient::report('static', $uri, false, 400, "没有此资源-->".json_encode($this->access_log));
 			Http::header ( 'HTTP/1.1 400 Bad Request' );
 			$connection->send ( '<h1>400 Bad Request</h1>' );
 			return;
 		}
 		// 只允许访问static文件夹下面
 		if (strpos ( $path, RUN_DIR . 'static/' ) != 0) {
+			\StatisticClient::report('static', $uri, false, 400, "没有此资源-->".json_encode($this->access_log));
 			Http::header ( 'HTTP/1.1 400 Bad Request' );
 			$connection->send ( '<h1>400 Bad Request</h1>' );
 			return;
@@ -132,17 +137,21 @@ class App extends Worker {
 	public function onMessage($connection, $data) {
 		// 初始化SEND_BODY
 		global $SEND_BODY;
+		global $config;
 		$SEND_BODY = "";
-		
 		$this->access_log [0] = $_SERVER ["REMOTE_ADDR"];
-		$this->access_log [1] = date ( "Y-m-d H:i:s" );
+		$this->access_log [1] = T(time());
 		$this->access_log [2] = $_SERVER ['REQUEST_METHOD'];
 		$this->access_log [3] = $_SERVER ['REQUEST_URI'];
 		$this->access_log [4] = $_SERVER ['SERVER_PROTOCOL'];
 		$this->access_log [5] = "NULL";
 		$this->access_log [6] = 200;
 		$this->access_log [7] = microtime_float ();
-		
+		//这块的作用是，如果访问的是/，默认增加模块
+		if($data ["server"] ["REQUEST_URI"]=="/"){
+			$data ["server"] ["REQUEST_URI"] = $data ["server"] ["REQUEST_URI"] . $config ["default_module"];
+			$_SERVER ['REQUEST_URI'] = $_SERVER ['REQUEST_URI'] . $config ["default_module"];
+		}
 		// 网站根目录
 		$url = $data ["server"] ["REQUEST_URI"];
 		$pos = stripos ( $url, "?" );
@@ -168,18 +177,35 @@ class App extends Worker {
 			$success = true;
 			$static = true;
 		} else {
-			global $db;
-			// 事务开始
-			$db->beginTrans ();
+			
 			// 如果是访问controller,通过路由匹配控制器和方法
+			global $MODULE_URL; // 当前模块url路径
+			global $MODULE_NAME; // 当前模块名字
 			$r_call = Router::router ( $data, $this->map, $this->access_log, $module_name, $controller_path, $controller_name, $method_name );
 			// 如果通过拦截器检查
 			if ($r_call) {
 				// 寻找controller,找到就执行方法
-				if (is_file ( $module_name . $controller_path . $controller_name . "Controller.php" )) {
+				if (is_file ( str_replace ( "-", '_', RUN_DIR.$module_name . $controller_path . $controller_name . "Controller.php" ))) {
 					$c_u_f_path = $module_name . $controller_path . $controller_name . "Controller::" . $method_name;
 					$c_u_f_path = str_replace ( DS, '\\', $c_u_f_path );
-					$f_call = call_user_func ( $c_u_f_path, $this, $data );
+					//将-符号改为_ , 因为PHP方法名字不支持-
+					$c_u_f_path = str_replace ( "-", '_', $c_u_f_path );
+					global $db;
+					// 事务开始
+					$db->beginTrans ();
+					$is_c = 0;
+					try {
+						$f_call = call_user_func ( $c_u_f_path, $this, $data );
+					}catch (Exception $e){
+						$is_c = 1;
+						$db->rollBackTrans();
+						\StatisticClient::report ( $MODULE_NAME, $controller_name . "::" . $method_name, false, 404, "没找到此方法-->".json_encode($this->access_log));
+					}
+					if($is_c==0){
+						$db->commitTrans ();
+						\StatisticClient::report ( $MODULE_NAME, $controller_name . "::" . $method_name, true, 200, "请求成功" );
+					}
+					
 					// 直接发送他的返回值
 					if ($f_call !== null || $SEND_BODY != "") {
 						if (is_bool ( $f_call )) {
@@ -199,8 +225,6 @@ class App extends Worker {
 				}
 				$success = true;
 			}
-			// 事务结束
-			$db->commitTrans ();
 		}
 		
 		if (! $success) {
@@ -213,7 +237,7 @@ class App extends Worker {
 		// 已经处理请求数
 		static $request_count = 0;
 		// 如果请求数达到max_request
-		if (++ $request_count >= $this->max_request && $this->max_request > 0) {
+		if (++ $request_count >= $config["max_request"] && $config["max_request"] > 0) {
 			Worker::stopAll ();
 		}
 	}

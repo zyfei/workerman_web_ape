@@ -1,7 +1,7 @@
 <?php
+define ( 'RUN_DIR', __DIR__ . "/" );
 require_once '_lib/Autoloader.php';
-require_once '_lib/ape/workerman_version.php';
-
+require_once '_lib/ape/chose_workerman_version.php';
 use \Workerman\Worker;
 use \Workerman\Connection\AsyncTcpConnection;
 

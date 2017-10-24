@@ -186,6 +186,11 @@ class Http {
 		// REMOTE_ADDR REMOTE_PORT
 		$_SERVER ['REMOTE_ADDR'] = $connection->getRemoteIp ();
 		$_SERVER ['REMOTE_PORT'] = $connection->getRemotePort ();
+		
+		if(!array_key_exists("SERVER_PORT",$_SERVER)){
+			$_SERVER ['SERVER_PORT'] = 80;
+		}
+		
 		return array (
 				'get' => $_GET,
 				'post' => $_POST,
@@ -360,6 +365,7 @@ class Http {
 			HttpCache::$instance->sessionFile = $file_name;
 			$session_id = substr ( basename ( $file_name ), strlen ( 'ses' ) );
 			
+			$_SESSION = array ();
 			return self::setcookie ( HttpCache::$sessionName, $session_id, ini_get ( 'session.cookie_lifetime' ), ini_get ( 'session.cookie_path' ), ini_get ( 'session.cookie_domain' ), ini_get ( 'session.cookie_secure' ), ini_get ( 'session.cookie_httponly' ) );
 		}
 		
@@ -373,6 +379,9 @@ class Http {
 				$_SESSION = array ();
 			}
 		} else {
+			$_SESSION = array ();
+		}
+		if($_SESSION == null){
 			$_SESSION = array ();
 		}
 		return true;
@@ -426,14 +435,18 @@ class Http {
 			$session_id = time () . "_" . random ( 9 );
 			
 			HttpCache::$instance->sessionFile = $session_id;
+			$_SESSION = array ();
 			return self::setcookie ( HttpCache::$sessionName, $session_id, ini_get ( 'session.cookie_lifetime' ), ini_get ( 'session.cookie_path' ), ini_get ( 'session.cookie_domain' ), ini_get ( 'session.cookie_secure' ), ini_get ( 'session.cookie_httponly' ) );
 		}
-		HttpCache::$instance->sessionFile =  $_COOKIE [HttpCache::$sessionName];
+		HttpCache::$instance->sessionFile = $_COOKIE [HttpCache::$sessionName];
 		// 判断数据库是否有这个
-		$session = Session::find ( HttpCache::$instance->sessionFile);
+		$session = Session::find ( HttpCache::$instance->sessionFile );
 		if ($session) {
 			$_SESSION = json_decode ( $session ["body"], true );
 		} else {
+			$_SESSION = array ();
+		}
+		if($_SESSION == null){
 			$_SESSION = array ();
 		}
 		return true;
@@ -465,7 +478,6 @@ class Http {
 			} else {
 				$session ["body"] = $session_str;
 				Session::update ( $session );
-				
 			}
 			HttpCache::$instance->sessionStarted = false;
 			HttpCache::$instance->sessionFile = null;
@@ -537,7 +549,12 @@ class Http {
 else {
 							// Parse $_POST.
 							if (preg_match ( '/name="(.*?)"$/', $header_value, $match )) {
-								$_POST [$match [1]] = $boundary_value;
+								// zyf
+								if (strlen ( $match [1] ) > 2 && strripos ( $match [1], "[]" ) == (strlen ( $match [1] ) - 2)) {
+									$_POST [substr ( $match [1], 0, (strlen ( $match [1] ) - 2) )] [] = $boundary_value;
+								} else {
+									$_POST [$match [1]] = $boundary_value;
+								}
 							}
 						}
 						break;

@@ -9,28 +9,42 @@ class DBBase {
 	protected static $created_at = "created_at";
 	protected static $updated_at = "updated_at";
 	protected static $deleted_at = "deleted_at";
-	
+	// 默认哪个数据库
+	protected static $db_name = "db";
 	/**
 	 * 添加
 	 */
 	public static function add(&$arr = null) {
-		global $db;
-		global $database;
-		global $global;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if ($arr == null) {
 			return false;
 		}
+		/**
+		 * 将""转换成null
+		 */
+// 		foreach ($arr as $k=>$n){
+// 			if($n==""){
+// 				$arr[$k] = null;
+// 			}
+// 		}
+		
 		$tm = date ( "Y-m-d H:i:s", time () );
 		// 写入创建时间和更新时间
 		$arr [self::$created_at] = $tm;
 		$arr [self::$updated_at] = $tm;
 		
-		$arr ["id"] = $db->insert ( static::$table )->cols ( $arr )->query ();
+		if (array_key_exists ( "id", $arr )) {
+			$$db_name->insert ( static::$table )->cols ( $arr )->query ();
+		} else {
+			$arr ["id"] = $$db_name->insert ( static::$table )->cols ( $arr )->query ();
+		}
 		// 添加存入缓存
-	
-		if ($database ["cache"] === true) {
-			$_key = "id_cache_" . static::$table . "_" . $arr ["id"];
-			$global->$_key = $arr;
+		
+		if ($$db_name ->cache != null) {
+			$arr = self::find($arr ["id"]);
+			$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $arr ["id"];
+			$$db_name ->cache->$_key = $arr;
 		}
 	}
 	
@@ -41,12 +55,20 @@ class DBBase {
 	 * @param unknown $arr        	
 	 */
 	public static function update(&$arr = null, $id = null) {
-		global $db;
-		global $database;
-		global $global;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if ($arr == null) {
 			return false;
 		}
+		/**
+		 * 将""转换成null
+		 */
+// 		foreach ($arr as $k=>$n){
+// 			if($n==""){
+// 				$arr[$k] = null;
+// 			}
+// 		}
+		
 		if (! isset ( $arr ["id"] )) {
 			return false;
 		}
@@ -56,10 +78,10 @@ class DBBase {
 		$whereStr = "id='" . $id . "'";
 		
 		// 判断缓存的数据和新数据是否一模一样，一样的话，不更新
-		if ($database ["cache"] === true) {
-			$_key = "id_cache_" . static::$table . "_" . $id;
-			var_export ( $global->$_key ,true);
-			if (isset ( $global->$_key ) && $id == $arr ["id"] && $global->$_key === $arr) {
+		if ($$db_name ->cache != null) {
+			$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $id;
+			var_export ( $$db_name ->cache->$_key, true );
+			if (isset ( $$db_name ->cache->$_key ) && $id == $arr ["id"] && $$db_name ->cache->$_key === $arr) {
 				return true;
 			}
 		}
@@ -74,18 +96,31 @@ class DBBase {
 			}
 		}
 		
-		if ($db->update ( static::$table )->cols ( $arr )->where ( $whereStr )->query () == null) {
+		if ($$db_name->update ( static::$table )->cols ( $arr )->where ( $whereStr )->query () == null) {
 			return false;
 		} else {
-			if ($database ["cache"] === true) {
+			if ($$db_name ->cache != null) {
 				// 缓存删除修改前的数据
-				$_key = "id_cache_" . static::$table . "_" . $id;
-				unset ( $global->$_key );
+				$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $id;
+				unset ( $$db_name ->cache->$_key );
 				// 缓存存入新的数据
-				$_key = "id_cache_" . static::$table . "_" . $arr ["id"];
-				$global->$_key = $arr;
+				$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $arr ["id"];
+				$$db_name ->cache->$_key = $arr;
 			}
 			return true;
+		}
+	}
+	
+	/**
+	 * 批量删除
+	 */
+	public static function delete_all($str = ""){
+		if($str==""){
+			return;
+		}
+		$as = self::all($str);
+		foreach ($as as $n){
+			self::delete($n["id"]);
 		}
 	}
 	
@@ -93,17 +128,16 @@ class DBBase {
 	 * 删除 传入id删除
 	 */
 	public static function delete($id = null) {
-		global $db;
-		global $database;
-		global $global;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if ($id == null) {
 			return false;
 		}
 		
 		// 在缓存中删除
-		if ($database ["cache"] === true) {
-			$_key = "id_cache_" . static::$table . "_" . $id;
-			unset ( $global->$_key );
+		if ($$db_name ->cache != null) {
+			$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $id;
+			unset ( $$db_name ->cache->$_key );
 		}
 		
 		// 是否使用软删除
@@ -115,7 +149,7 @@ class DBBase {
 		}
 		
 		// 真删除
-		$db->delete ( static::$table )->where ( "id='$id'" )->query ();
+		$$db_name->delete ( static::$table )->where ( "id='$id'" )->query ();
 	}
 	
 	/**
@@ -125,19 +159,18 @@ class DBBase {
 	 * @return array|mixed|NULL|string
 	 */
 	public static function find($id = null) {
-		global $db;
-		global $database;
-		global $global;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if ($id == null) {
 			return null;
 		}
 		// 如果是$where是数字类型，那么判断缓存中是否有
 		// 如果有缓存，直接返回缓存值
-		if ($database ["cache"] === true) {
-			$_key = "id_cache_" . static::$table . "_" . $id;
-			if (isset ( $global->$_key )) {
-				var_export ( $global->$_key ,true);
-				return $global->$_key;
+		if ($$db_name ->cache != null) {
+			$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $id;
+			if (isset ( $$db_name ->cache->$_key )) {
+				var_export ( $$db_name ->cache->$_key, true );
+				return $$db_name ->cache->$_key;
 			}
 		}
 		$where = "id='$id'";
@@ -145,12 +178,12 @@ class DBBase {
 		if (static::$softDelete) {
 			$where = "$where and " . self::$deleted_at . " is null";
 		}
-		$res = $db->row ( "SELECT * FROM `" . static::$table . "` WHERE $where" );
+		$res = $$db_name->row ( "SELECT * FROM `" . static::$table . "` WHERE $where" );
 		if ($res) {
 			// 将数据存入缓存
-			if ($database ["cache"] === true) {
-				$_key = "id_cache_" . static::$table . "_" . $id;
-				$global->$_key = $res;
+			if ($$db_name ->cache != null) {
+				$_key = static::$db_name . "_" . "id_cache_" . static::$table . "_" . $id;
+				$$db_name ->cache->$_key = $res;
 			}
 			return $res;
 		} else {
@@ -162,11 +195,12 @@ class DBBase {
 	 * 查询全部
 	 */
 	public static function all($where = "1=1", $order = "id desc") {
-		global $db;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if (static::$softDelete) {
 			$where = "$where and " . self::$deleted_at . " is null";
 		}
-		$arr = $db->query ( "select * FROM `" . static::$table . "` where $where order by $order" );
+		$arr = $$db_name->query ( "select * FROM `" . static::$table . "` where $where order by $order" );
 		if ($arr == null) {
 			return array ();
 		} else {
@@ -178,11 +212,12 @@ class DBBase {
 	 * 查询全部
 	 */
 	public static function count($where = "1=1") {
-		global $db;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if (static::$softDelete) {
 			$where = "$where and " . self::$deleted_at . " is null";
 		}
-		return $db->column ( "select count(*)  FROM `" . static::$table . "` where $where" ) [0];
+		return $$db_name->column ( "select count(*)  FROM `" . static::$table . "` where $where" ) [0];
 	}
 	
 	/**
@@ -195,14 +230,15 @@ class DBBase {
 	 * @return number|unknown
 	 */
 	public static function page($index = 0, $length = 0, $where = " 1=1 ", $order = "id desc") {
-		global $db;
+		$db_name = static::$db_name;
+		global $$db_name;
 		if (static::$softDelete) {
 			$where = "$where and " . self::$deleted_at . " is null";
 		}
 		
-		$cs = $db->query ( "select * FROM `" . static::$table . "` where $where order by $order LIMIT $length OFFSET $index" );
+		$cs = $$db_name->query ( "select * FROM `" . static::$table . "` where $where order by $order LIMIT $length OFFSET $index" );
 		$arr ["list"] = $cs;
-		$allCount = $db->column ( "select count(*)  FROM `" . static::$table . "` where $where" ) [0];
+		$allCount = $$db_name->column ( "select count(*)  FROM `" . static::$table . "` where $where" ) [0];
 		$arr ["all_count"] = $allCount;
 		if ($length != 0) {
 			$yu = 0;

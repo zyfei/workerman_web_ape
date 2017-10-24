@@ -22,8 +22,8 @@ class Autoloader {
 		$class_file = $class_path . '.php';
 		
 		// 如果没找到的话，再在_lib文件夹下寻找
-		if (! is_file ( $class_file )) {
-			//使用相应的workerman包
+		if (! is_file ( RUN_DIR . $class_file )) {
+			// 使用相应的workerman包
 			$class_path = str_replace ( "Workerman", WORKERMAN, $class_path );
 			$class_file = self::$_libPath . DIRECTORY_SEPARATOR . $class_path . '.php';
 			// if (! is_file ( $class_file )) {
@@ -31,9 +31,9 @@ class Autoloader {
 			// }
 		}
 		// 找到文件
-		if (is_file ( $class_file )) {
+		if (is_file ( RUN_DIR . $class_file )) {
 			// 加载
-			require_once ($class_file);
+			require_once (RUN_DIR . $class_file);
 			if (class_exists ( $name, false )) {
 				return true;
 			}

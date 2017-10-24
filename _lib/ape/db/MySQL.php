@@ -11,6 +11,8 @@ use PDOException;
  */
 class MySQL
 {
+	//默认是没有缓存的
+	public $cache = null;
     /**
      * SELECT
      *

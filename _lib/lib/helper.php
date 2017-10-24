@@ -10,21 +10,41 @@ function microtime_float() {
 	list ( $usec, $sec ) = explode ( " ", microtime () );
 	return (( float ) $usec + ( float ) $sec);
 }
+function json_int_to_string($arr) {
+	if (! is_array ( $arr )) {
+		return $arr . "";
+	}
+	foreach ( $arr as $k => $n ) {
+		if (is_array ( $n )) {
+			$arr [$k] = json_int_to_string ( $n );
+		} elseif (is_int ( $n )) {
+			$arr [$k] = $n . "";
+		} elseif (is_float ( $n )) {
+			$arr [$k] = $n . "";
+		} elseif (is_integer ( $n )) {
+			$arr [$k] = $n . "";
+		} elseif (is_long ( $n )) {
+			$arr [$k] = $n . "";
+		}
+	}
+	return $arr;
+}
 
 /**
  * 格式化时间
- * @param unknown $time
- * @param unknown $fmt
+ *
+ * @param unknown $time        	
+ * @param unknown $fmt        	
  * @return unknown
  */
 function T($time = null, $fmt = null) {
 	if ($fmt == null) {
 		$fmt = "Y-m-d H:i:s";
 	}
-	if ($time == null) {
+	if ($time == null || $time == "" || $time == 0) {
 		return "";
 	}
-	return date($fmt,$time);
+	return date ( $fmt, $time );
 }
 
 /**
@@ -113,24 +133,33 @@ function alert($str) {
  *
  * @param string $url        	
  */
-function close_layer($url = "null") {
+function close_layer($cla = "null", $m = "") {
 	global $SEND_BODY;
-	if ($url == "null") {
+	if ($cla == "null") {
 		$SEND_BODY = $SEND_BODY . "<script>var index = parent.layer.getFrameIndex(window.name);parent.layer.close(index);</script>";
 		return true;
 	}
-	if ($url == "reload") {
-		$SEND_BODY = $SEND_BODY . "<script>var index = parent.layer.getFrameIndex(window.name);parent.location.reload();parent.layer.close(index);</script>";
+	if ($cla == "reload") {
+		$SEND_BODY = $SEND_BODY . "<script>var index = parent.layer.getFrameIndex(window.name);parent.open_reload();parent.layer.close(index);</script>";
 		return true;
 	}
-	$SEND_BODY = $SEND_BODY . "<script>var index = parent.layer.getFrameIndex(window.name);parent.location.href='" . $url . "';parent.layer.close(index);</script>";
+	$SEND_BODY = $SEND_BODY . "<script>var index = parent.layer.getFrameIndex(window.name);parent.ape_open('" . $cla . "','" . $m . "');parent.layer.close(index);</script>";
 	return true;
+}
+
+/**
+ * 返回上一页
+ */
+function history_back() {
+	global $SEND_BODY;
+	$SEND_BODY = $SEND_BODY . "<script>history.back();</script>";
 }
 
 // 重定向方法
 function R($url, $arr = array()) {
 	global $SEND_BODY;
 	global $MODULE_URL;
+	
 	$en = strpos ( $url, "http" );
 	if ($en !== 0) {
 		$url = $MODULE_URL . $url;
@@ -159,6 +188,7 @@ function api($msg, $code, $content) {
 	Http::header ( "Content-type: application/json" );
 	$arr ["msg"] = $msg;
 	$arr ["code"] = $code;
+	$content = json_int_to_string ( $content );
 	$arr ["content"] = $content;
 	$SEND_BODY = $SEND_BODY . json_encode ( $arr );
 	return true;
@@ -181,7 +211,7 @@ function view($tpl, &$arr = NULL_ARRAY) {
  * @param string $chars        	
  * @return string
  */
-function random($length, $chars = '123123ui1h2iu3g12f3l12g312f3ul1g2u3g12ui3f1212iu3g1i23gi12f312') {
+function random($length, $chars = '1234567890qwertyuiopasdfghjklzxcvbnm') {
 	$hash = '';
 	$max = strlen ( $chars ) - 1;
 	for($i = 0; $i < $length; $i ++) {
@@ -240,7 +270,7 @@ function clean_xss($string, $strict = true) {
 
 /**
  * 打印
- * 
+ *
  * @param unknown $arr        	
  */
 function dd($arr) {
@@ -248,4 +278,39 @@ function dd($arr) {
 }
 function find($model, $id) {
 	return call_user_func ( "\model\\" . $model . "::find", $id );
+}
+
+/**
+ * 日志打印
+ */
+function dd_log($msg, $dir = "default") {
+	global $log_connection;
+	$arr ["dir"] = $dir;
+	$arr ["msg"] = $msg;
+	$log_connection->send ( json_encode ( $arr ) );
+}
+
+/**
+ * 读取缓存
+ */
+function read_cache($k_name) {
+	global $cache;
+	if ($cache != null && isset ( $cache->$k_name )) {
+		var_export ( $cache->$k_name, true );
+		return $cache->$k_name;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * 写入缓存
+ * 
+ * @param unknown $key_name        	
+ */
+function write_cache($k_name, $data) {
+	global $cache;
+	if ($cache != null) {
+		$cache->$k_name = $data;
+	}
 }
