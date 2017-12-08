@@ -2,7 +2,7 @@
 
 namespace model;
 
-use lib\base\DBBase;
+use ape\base\DBBase;
 
 /**
  * 管理员
@@ -17,7 +17,7 @@ class Admin extends DBBase {
 		global $db;
 		$admins = $db->select ( '*' )->from ( static::$table )->where ( 'phone= :phone' )->where ( 'password= :password' )->where ( 'deleted_at is null' )->bindValues ( array (
 				'phone' => $phone,
-				'password' => $password 
+				'password' => $password
 		) )->query ();
 		if (is_array ( $admins) && count ( $admins) > 0) {
 			return $admins[0];
@@ -25,6 +25,6 @@ class Admin extends DBBase {
 			return null;
 		}
 	}
-	
-	
+
+
 }

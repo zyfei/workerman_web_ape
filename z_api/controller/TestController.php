@@ -1,15 +1,22 @@
 <?php
 namespace z_api\controller;
 
-use lib\base\BaseController;
+use ape\base\BaseController;
+use model\Admin;
 
 /**
  * 测试
  */
 class TestController extends BaseController{
-	
-	public static function test($app, $data) {
-		return api("success", "200", "test");
+
+	public static function test1($app, $data) {
+		return "hello world";
+	}
+
+	public static function test2($app, $data) {
+		$admins = Admin::all();
+		$arr['admins'] = $admins;
+		return view("test2",$arr);
 	}
 
 }

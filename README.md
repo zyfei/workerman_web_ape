@@ -11,9 +11,11 @@ POSIX PCNTL extensions for PHP
 ## 路由详解
 路由:根据url找寻controller下面的类和方法  
 规则 : http://路径/模块名字/类名/方法名  
-`http://127.0.0.1/admin/user_mm/all  `
-`对应z_admin模块下UserMmController类all方法`  
-首先会将url中带_后面的首字母大写,然后查找对应的类和方法
+```http://127.0.0.1/admin/user_mm/all 对应z_admin模块下UserMmController类all方法```  
+```http://127.0.0.1/user_mm/all 对应默认模块下UserMmController类all方法```  
+```http://127.0.0.1/all 对应默认模块下默认Controller类all方法```  
+首先会将url中带_后面的首字母大写,然后查找对应的类和方法  
+
 
 ## 数据库操作详解
 使用workerman提供的mysql操作类为基础，封装了find update delete count all page 等方法  
@@ -23,7 +25,27 @@ POSIX PCNTL extensions for PHP
 
 ## 视图
 封装了简单的输出 循环 判断 include标签，具体看例子，复杂的调用请使用php语法,或者自己扩展
+```
+//循环输出
+{foreach $n['list'] k2=>n2}
+    //请使用单引号
+    {$n2['name']}
+    //判断
+    {if $n2['id']==0}
+        测试
+    {/if}
+{/foreach}
 
+//包含文件
+{include file="public.head"}
+
+```
+
+## 日志
+请使用dd_log("相对于log目录的文件夹","日志内容";
+```
+框架会使用和http端口相同的端口创建一个udp服务，所有日志操作都是udp操作，无阻塞。
+```
 ## 如何启动
 ```php start.php start  ```  
 ```php start.php start -d  ```  
@@ -136,7 +158,3 @@ Documentation:[https://github.com/walkor/workerman-manual](https://github.com/wa
 
 QQ群: 342016184   
 任何人都可以通过QQ群联系到我。
-
-
-
-

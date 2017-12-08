@@ -2,6 +2,8 @@
 
 namespace ape\view;
 
+use ape\ApeWeb;
+
 /**
  *
  * @author Administrator
@@ -40,7 +42,6 @@ class View
      */
     public function parse($tpl)
     {
-        global $MODULE_NAME; // 当前模块
         // load template file //
         $fp = @fopen($this->templatedir . $tpl, 'r');
         $text = fread($fp, filesize($this->templatedir . $tpl));
@@ -84,8 +85,8 @@ class View
             fclose($fp);
         }
         // 删除旧的模板
-        @unlink($this->compiledir . $this->tpl_storage [$MODULE_NAME . "/" . $tpl]);
-        $this->tpl_storage [$MODULE_NAME . "/" . $tpl] = $compliefile;
+        @unlink($this->compiledir . $this->tpl_storage [ApeWeb::$MODULE_NAME . "/" . $tpl]);
+        $this->tpl_storage [ApeWeb::$MODULE_NAME . "/" . $tpl] = $compliefile;
     }
 
     /*
@@ -136,14 +137,13 @@ class View
         $tpl = str_replace('.', '/', $tpl);
         $tpl = $tpl . ".html";
 
-        global $MODULE_NAME; // 当前模块
         if (! file_exists($this->templatedir . $tpl)) {
             return ('can not load template file : ' . $this->templatedir . $tpl);
         }
         // 判断是否存在这个模板缓存
-        if (array_key_exists($MODULE_NAME . "/" . $tpl, $this->tpl_storage)) {
+        if (array_key_exists(ApeWeb::$MODULE_NAME . "/" . $tpl, $this->tpl_storage)) {
             // 获取模板模板缓存位置
-            $compliefile = $this->compiledir . $this->tpl_storage [$MODULE_NAME . "/" . $tpl];
+            $compliefile = $this->compiledir . $this->tpl_storage [ApeWeb::$MODULE_NAME . "/" . $tpl];
             if (! file_exists($compliefile) || filemtime($this->templatedir . $tpl) > filemtime($compliefile)) {
                 $this->parse($tpl);
             }
@@ -151,7 +151,7 @@ class View
             // 如果不存在这个模板缓存
             $this->parse($tpl);
         }
-        $compliefile = $this->compiledir . $this->tpl_storage [$MODULE_NAME . "/" . $tpl];
+        $compliefile = $this->compiledir . $this->tpl_storage [ApeWeb::$MODULE_NAME . "/" . $tpl];
         foreach ($this->vars as $k=>$n) {
             $$k = $n;
         }
@@ -169,14 +169,12 @@ class View
      */
     public function view($tpl, &$vars = array())
     {
-        global $MODULE_NAME; // 当前模块
-        global $MODULE_URL;
-        $this->templateDir(RUN_DIR . $MODULE_NAME . "/" . "views/");
-        $this->compileDir(RUN_DIR . $MODULE_NAME . "/" . 'storage/views/');
+        $this->templateDir(RUN_DIR . ApeWeb::$MODULE_NAME . "/" . "views/");
+        $this->compileDir(RUN_DIR . ApeWeb::$MODULE_NAME . "/" . 'storage/views/');
 
         $this->vars = $vars;
         $this->vars ["HOME"] = HOME;
-        $this->vars ["MODULE_URL"] = $MODULE_URL;
+        $this->vars ["MODULE_URL"] = ApeWeb::$MODULE_URL;
 
         $ret = $this->display($tpl);
         $this->vars = null;

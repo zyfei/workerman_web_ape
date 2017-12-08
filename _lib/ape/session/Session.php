@@ -10,6 +10,4 @@ use lib\base\DBBase;
 class Session extends DBBase {
 	public static $table = "session";
 	public static $softDelete = false;
-	public static $id_cache = array ();
-	
 }
