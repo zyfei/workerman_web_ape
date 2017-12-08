@@ -42,7 +42,7 @@ POSIX PCNTL extensions for PHP
 ```
 
 ## 日志
-请使用dd_log("相对于log目录的文件夹","日志内容";
+请使用dd_log("相对于log目录的文件夹","日志内容");
 ```
 框架会使用和http端口相同的端口创建一个udp服务，所有日志操作都是udp操作，无阻塞。
 ```
