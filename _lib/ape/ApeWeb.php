@@ -184,13 +184,19 @@ class ApeWeb extends Worker
             $r_call = Router::router($data, $this->map, $this->access_log, $module_name, $controller_path, $controller_name, $method_name);
             // 如果通过拦截器检查
             if ($r_call) {
-                // 寻找controller,找到就执行方法
-                if (is_file(str_replace("-", '_', RUN_DIR.$module_name . $controller_path . $controller_name . "Controller.php"))) {
-                    $c_u_f_path = $module_name . $controller_path . $controller_name . "Controller::" . $method_name;
-                    $c_u_f_path = str_replace(DS, '\\', $c_u_f_path);
-                    //将-符号改为_ , 因为PHP方法名字不支持-
-                    $c_u_f_path = str_replace("-", '_', $c_u_f_path);
-                    global $db;
+                $c_u_f_path = $module_name . $controller_path . $controller_name. "Controller";
+                $c_u_f_path = str_replace(DS, '\\', $c_u_f_path);
+                
+                //将-符号改为_ , 因为PHP方法名字不支持-
+                $c_u_f_path = str_replace("-", '_', $c_u_f_path);
+                $method_name = str_replace("-", '_', $method_name);
+
+                // 寻找controller,并且验证是否类中包含指定方法,找到就执行方法
+                if (is_file(RUN_DIR.$module_name . $controller_path . $controller_name . "Controller.php")
+                    &&method_exists('\\'.$c_u_f_path, $method_name)) {
+                    $success = true;
+                    //将方法名字拼接上
+                    $c_u_f_path = $c_u_f_path . "::" . $method_name;
                     $f_call = null;
                     try {
                         $f_call = call_user_func($c_u_f_path, $this, $data);
@@ -203,7 +209,6 @@ class ApeWeb extends Worker
                         if (is_bool($f_call)) {
                             $f_call = "";
                         }
-                        $success = true;
                         if (ApeWeb::$SEND_BODY != "") {
                             $f_call = ApeWeb::$SEND_BODY . $f_call;
                         }
@@ -212,8 +217,8 @@ class ApeWeb extends Worker
                 }
             } else {
                 // 拦截器检查没通过，不报404，拦截器自己处理
-                $this->send(ApeWeb::$SEND_BODY);
                 $success = true;
+                $this->send(ApeWeb::$SEND_BODY);
             }
         }
 
