@@ -1,6 +1,6 @@
 <?php
 return array(
-        "port" => "8080",
+        "port" => "8081",
         "home" => "http://127.0.0.1/",
         // session模式 file存文件 database存入数据库
         "session_type" => "database",

@@ -47,13 +47,14 @@ POSIX PCNTL extensions for PHP
 框架会使用和http端口相同的端口创建一个udp服务，所有日志操作都是udp操作，无阻塞。
 ```
 ## 如何启动
-```php start.php start  ```  
-```php start.php start -d  ```  
-```php start.php status  ```   
-```php start.php connections```  
-```php start.php stop  ```  
-```php start.php restart  ```  
-```php start.php reload  ```  
+```php main start  ```  
+```php main start -d  ```  
+```php main status  ```   
+```php main connections```  
+```php main stop  ```  
+```php main restart  ```  
+```php main reload  ```  
+```windows环境下需要分别启动根目录下start_*.php文件  ``` 
 
 # Workerman性能测试
 ```

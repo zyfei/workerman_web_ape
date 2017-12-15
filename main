@@ -1,0 +1,22 @@
+<?php
+define('RUN_DIR', __DIR__ . "/");
+
+//检查前提条件
+if (! extension_loaded ( 'pcntl' )) {
+    exit ( "Please install pcntl extension. See http://doc3.workerman.net/install/install.html\n" );
+}
+
+if (! extension_loaded ( 'posix' )) {
+    exit ( "Please install posix extension. See http://doc3.workerman.net/install/install.html\n" );
+}
+
+use Workerman\Worker;
+
+// 启动服务
+require_once RUN_DIR."log_server.php";
+foreach ( glob ( RUN_DIR . 'start*.php' ) as $start_file ) {
+	require_once $start_file;
+}
+
+// 运行所有服务
+Worker::runAll ();

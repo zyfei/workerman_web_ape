@@ -1,8 +1,22 @@
 <?php
+if(!defined("RUN_DIR")){
+    define('RUN_DIR', __DIR__ . "/");
+}
+require_once '_lib/ape/helper.php';
+require_once '_lib/ape/constant.php';
+require_once '_lib/Autoloader.php';
+require_once '_lib/ape/http/Http.php';
+
+use Workerman\Worker;
 use ape\ApeWeb;
 use ape\view\View;
 use ape\MySQL;
 use Workerman\Connection\AsyncTcpConnection;
+
+// 日志
+Worker::$logFile = __DIR__ . "/log/" . APE['config'] ["logFile"];
+// 访问日志
+Worker::$stdoutFile = __DIR__ . "/log/" . APE['config'] ["stdoutFile"];
 
 $apeWeb = new ApeWeb("http://0.0.0.0:" . APE["config"]["port"]);
 $apeWeb->name = APE["config"] ["worker_name"];
@@ -28,7 +42,7 @@ $apeWeb->onStart = function ($apeWeb) {
         }
     }
 
-    require_once RUN_DIR."filter.php";
+    require_once RUN_DIR."config/filter.php";
     foreach (glob(RUN_DIR . 'z_*/filter.php') as $file) {
         require_once($file);
     }
@@ -38,3 +52,7 @@ $apeWeb->onStart = function ($apeWeb) {
     ApeWeb::$udp_log_client->connect();
     //链接UDP日志服务器 end
 };
+
+if(APE["WORKERMAN"] ==  "Workerman_win"){
+    Worker::runAll();
+}

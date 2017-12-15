@@ -1,5 +1,18 @@
 <?php
+if(!defined("RUN_DIR")){
+    define('RUN_DIR', __DIR__ . "/");
+}
+require_once '_lib/ape/helper.php';
+require_once '_lib/ape/constant.php';
+require_once '_lib/Autoloader.php';
+require_once '_lib/ape/http/Http.php';
+
 use Workerman\Worker;
+
+// 日志
+Worker::$logFile = __DIR__ . "/log/" . APE['config'] ["logFile"];
+// 访问日志
+Worker::$stdoutFile = __DIR__ . "/log/" . APE['config'] ["stdoutFile"];
 
 $worker = new Worker("udp://0.0.0.0:". APE['config']['port']);
 $worker->name = 'log_server';
@@ -37,3 +50,8 @@ $worker->onMessage = function ($connection, $data) {
     file_put_contents(RUN_DIR . $dir . $file, $time . "->" . $msg . PHP_EOL, FILE_APPEND);
     $connection->close();
 };
+
+if(APE["WORKERMAN"] ==  "Workerman_win"){
+    Worker::runAll();
+}
+
