@@ -30,12 +30,12 @@ class Http {
 	 * @var array
 	 */
 	public static $methods = array (
-			'GET',
-			'POST',
-			'PUT',
-			'DELETE',
-			'HEAD',
-			'OPTIONS'
+		'GET',
+		'POST',
+		'PUT',
+		'DELETE',
+		'HEAD',
+		'OPTIONS'
 	);
 	/**
 	 * Check the integrity of the package.
@@ -96,26 +96,26 @@ class Http {
 		$GLOBALS ['HTTP_RAW_POST_DATA'] = '';
 		// Clear cache.
 		HttpCache::$header = array (
-				'Connection' => 'Connection: keep-alive'
+			'Connection' => 'Connection: keep-alive'
 		);
 		HttpCache::$instance = new HttpCache ();
 		// $_SERVER
 		$_SERVER = array (
-				'QUERY_STRING' => '',
-				'REQUEST_METHOD' => '',
-				'REQUEST_URI' => '',
-				'SERVER_PROTOCOL' => '',
-				'SERVER_SOFTWARE' => 'workerman/' . Worker::VERSION,
-				'SERVER_NAME' => '',
-				'HTTP_HOST' => '',
-				'HTTP_USER_AGENT' => '',
-				'HTTP_ACCEPT' => '',
-				'HTTP_ACCEPT_LANGUAGE' => '',
-				'HTTP_ACCEPT_ENCODING' => '',
-				'HTTP_COOKIE' => '',
-				'HTTP_CONNECTION' => '',
-				'REMOTE_ADDR' => '',
-				'REMOTE_PORT' => '0'
+			'QUERY_STRING' => '',
+			'REQUEST_METHOD' => '',
+			'REQUEST_URI' => '',
+			'SERVER_PROTOCOL' => '',
+			'SERVER_SOFTWARE' => 'workerman/' . Worker::VERSION,
+			'SERVER_NAME' => '',
+			'HTTP_HOST' => '',
+			'HTTP_USER_AGENT' => '',
+			'HTTP_ACCEPT' => '',
+			'HTTP_ACCEPT_LANGUAGE' => '',
+			'HTTP_ACCEPT_ENCODING' => '',
+			'HTTP_COOKIE' => '',
+			'HTTP_CONNECTION' => '',
+			'REMOTE_ADDR' => '',
+			'REMOTE_PORT' => '0'
 		);
 		// Parse headers.
 		list ( $http_header, $http_body ) = explode ( "\r\n\r\n", $recv_buffer, 2 );
@@ -135,28 +135,28 @@ class Http {
 			switch ($key) {
 				// HTTP_HOST
 				case 'HOST' :
-					$tmp = explode ( ':', $value );
-					$_SERVER ['SERVER_NAME'] = $tmp [0];
-					if (isset ( $tmp [1] )) {
-						$_SERVER ['SERVER_PORT'] = $tmp [1];
-					}
-					break;
+				$tmp = explode ( ':', $value );
+				$_SERVER ['SERVER_NAME'] = $tmp [0];
+				if (isset ( $tmp [1] )) {
+					$_SERVER ['SERVER_PORT'] = $tmp [1];
+				}
+				break;
 				// cookie
 				case 'COOKIE' :
-					parse_str ( str_replace ( '; ', '&', $_SERVER ['HTTP_COOKIE'] ), $_COOKIE );
-					break;
+				parse_str ( str_replace ( '; ', '&', $_SERVER ['HTTP_COOKIE'] ), $_COOKIE );
+				break;
 				// content-type
 				case 'CONTENT_TYPE' :
-					if (! preg_match ( '/boundary="?(\S+)"?/', $value, $match )) {
-						$_SERVER ['CONTENT_TYPE'] = $value;
-					} else {
-						$_SERVER ['CONTENT_TYPE'] = 'multipart/form-data';
-						$http_post_boundary = '--' . $match [1];
-					}
-					break;
+				if (! preg_match ( '/boundary="?(\S+)"?/', $value, $match )) {
+					$_SERVER ['CONTENT_TYPE'] = $value;
+				} else {
+					$_SERVER ['CONTENT_TYPE'] = 'multipart/form-data';
+					$http_post_boundary = '--' . $match [1];
+				}
+				break;
 				case 'CONTENT_LENGTH' :
-					$_SERVER ['CONTENT_LENGTH'] = $value;
-					break;
+				$_SERVER ['CONTENT_LENGTH'] = $value;
+				break;
 			}
 		}
 		// Parse $_POST.
@@ -194,11 +194,11 @@ class Http {
 		}
 
 		return array (
-				'get' => $_GET,
-				'post' => $_POST,
-				'cookie' => $_COOKIE,
-				'server' => $_SERVER,
-				'files' => $_FILES
+			'get' => $_GET,
+			'post' => $_POST,
+			'cookie' => $_COOKIE,
+			'server' => $_SERVER,
+			'files' => $_FILES
 		);
 	}
 	/**
@@ -307,14 +307,14 @@ class Http {
 		global $config;
 		switch ($config ["session_type"]) {
 			case "file" :
-				HTTP::sessionStart_file ();
-				break;
+			HTTP::sessionStart_file ();
+			break;
 			case "database" :
-				HTTP::sessionStart_db ();
-				break;
+			HTTP::sessionStart_db ();
+			break;
 			default :
-				HTTP::sessionStart_file ();
-				break;
+			HTTP::sessionStart_file ();
+			break;
 		}
 	}
 
@@ -323,14 +323,14 @@ class Http {
 		global $config;
 		switch ($config ["session_type"]) {
 			case "file" :
-				HTTP::sessionWriteClose_file ();
-				break;
+			HTTP::sessionWriteClose_file ();
+			break;
 			case "database" :
-				HTTP::sessionWriteClose_db ();
-				break;
+			HTTP::sessionWriteClose_db ();
+			break;
 			default :
-				HTTP::sessionWriteClose_file ();
-				break;
+			HTTP::sessionWriteClose_file ();
+			break;
 		}
 	}
 
@@ -340,6 +340,12 @@ class Http {
 	 * @return unknown|boolean|boolean|void
 	 */
 	public static function sessionStart_file() {
+		if(!HttpCache::$sessionName){
+			//设置session名字
+			HttpCache::$sessionName = array_key_exists("session_name", APE['config'])?APE['config']['session_name'] : "ape_session";
+		}
+		
+
 		$session_path = RUN_DIR . ApeWeb::$MODULE_NAME . "/" . "storage/session"; // 当前模块
 
 		// 如果以文件方式存储session
@@ -352,6 +358,8 @@ class Http {
 			return true;
 		}
 		HttpCache::$instance->sessionStarted = true;
+		
+
 		// 如果cookie中没有seesionid
 		// || ! is_file ( $session_path . '/ses' . $_COOKIE [HttpCache::$sessionName] )
 		if (! isset ( $_COOKIE [HttpCache::$sessionName] )) {
@@ -369,7 +377,6 @@ class Http {
 			$_SESSION = array ();
 			return self::setcookie ( HttpCache::$sessionName, $session_id, ini_get ( 'session.cookie_lifetime' ), ini_get ( 'session.cookie_path' ), ini_get ( 'session.cookie_domain' ), ini_get ( 'session.cookie_secure' ), ini_get ( 'session.cookie_httponly' ) );
 		}
-
 		HttpCache::$instance->sessionFile = $session_path . '/ses' . $_COOKIE [HttpCache::$sessionName];
 		// Read session from session file.
 		if (is_file ( HttpCache::$instance->sessionFile )) {
@@ -546,16 +553,16 @@ class Http {
 				switch ($header_key) {
 					case "content-disposition" :
 						// Is file data.
-						if (preg_match ( '/name=".*?"; filename="(.*?)"$/', $header_value, $match )) {
+					if (preg_match ( '/name=".*?"; filename="(.*?)"$/', $header_value, $match )) {
 							// Parse $_FILES.
-							$_FILES [] = array (
-									'file_name' => $match [1],
-									'file_data' => $boundary_value,
-									'file_size' => strlen ( $boundary_value )
-							);
-							continue;
+						$_FILES [] = array (
+							'file_name' => $match [1],
+							'file_data' => $boundary_value,
+							'file_size' => strlen ( $boundary_value )
+						);
+						continue;
 						} // Is post field.
-else {
+						else {
 							// Parse $_POST.
 							if (preg_match ( '/name="(.*?)"$/', $header_value, $match )) {
 								// zyf
@@ -567,10 +574,10 @@ else {
 							}
 						}
 						break;
+					}
 				}
 			}
 		}
-	}
 	/**
 	 * Try GC sessions.
 	 *
@@ -594,49 +601,49 @@ else {
  */
 class HttpCache {
 	public static $codes = array (
-			100 => 'Continue',
-			101 => 'Switching Protocols',
-			200 => 'OK',
-			201 => 'Created',
-			202 => 'Accepted',
-			203 => 'Non-Authoritative Information',
-			204 => 'No Content',
-			205 => 'Reset Content',
-			206 => 'Partial Content',
-			300 => 'Multiple Choices',
-			301 => 'Moved Permanently',
-			302 => 'Found',
-			303 => 'See Other',
-			304 => 'Not Modified',
-			305 => 'Use Proxy',
-			306 => '(Unused)',
-			307 => 'Temporary Redirect',
-			400 => 'Bad Request',
-			401 => 'Unauthorized',
-			402 => 'Payment Required',
-			403 => 'Forbidden',
-			404 => 'Not Found',
-			405 => 'Method Not Allowed',
-			406 => 'Not Acceptable',
-			407 => 'Proxy Authentication Required',
-			408 => 'Request Timeout',
-			409 => 'Conflict',
-			410 => 'Gone',
-			411 => 'Length Required',
-			412 => 'Precondition Failed',
-			413 => 'Request Entity Too Large',
-			414 => 'Request-URI Too Long',
-			415 => 'Unsupported Media Type',
-			416 => 'Requested Range Not Satisfiable',
-			417 => 'Expectation Failed',
-			422 => 'Unprocessable Entity',
-			423 => 'Locked',
-			500 => 'Internal Server Error',
-			501 => 'Not Implemented',
-			502 => 'Bad Gateway',
-			503 => 'Service Unavailable',
-			504 => 'Gateway Timeout',
-			505 => 'HTTP Version Not Supported'
+		100 => 'Continue',
+		101 => 'Switching Protocols',
+		200 => 'OK',
+		201 => 'Created',
+		202 => 'Accepted',
+		203 => 'Non-Authoritative Information',
+		204 => 'No Content',
+		205 => 'Reset Content',
+		206 => 'Partial Content',
+		300 => 'Multiple Choices',
+		301 => 'Moved Permanently',
+		302 => 'Found',
+		303 => 'See Other',
+		304 => 'Not Modified',
+		305 => 'Use Proxy',
+		306 => '(Unused)',
+		307 => 'Temporary Redirect',
+		400 => 'Bad Request',
+		401 => 'Unauthorized',
+		402 => 'Payment Required',
+		403 => 'Forbidden',
+		404 => 'Not Found',
+		405 => 'Method Not Allowed',
+		406 => 'Not Acceptable',
+		407 => 'Proxy Authentication Required',
+		408 => 'Request Timeout',
+		409 => 'Conflict',
+		410 => 'Gone',
+		411 => 'Length Required',
+		412 => 'Precondition Failed',
+		413 => 'Request Entity Too Large',
+		414 => 'Request-URI Too Long',
+		415 => 'Unsupported Media Type',
+		416 => 'Requested Range Not Satisfiable',
+		417 => 'Expectation Failed',
+		422 => 'Unprocessable Entity',
+		423 => 'Locked',
+		500 => 'Internal Server Error',
+		501 => 'Not Implemented',
+		502 => 'Bad Gateway',
+		503 => 'Service Unavailable',
+		504 => 'Gateway Timeout',
+		505 => 'HTTP Version Not Supported'
 	);
 	/**
 	 *
