@@ -374,6 +374,8 @@ class Http {
 			HttpCache::$instance->sessionFile = $file_name;
 			$session_id = substr ( basename ( $file_name ), strlen ( 'ses' ) );
 
+			$_COOKIE [HttpCache::$sessionName] = $session_id;
+
 			$_SESSION = array ();
 			return self::setcookie ( HttpCache::$sessionName, $session_id, ini_get ( 'session.cookie_lifetime' ), ini_get ( 'session.cookie_path' ), ini_get ( 'session.cookie_domain' ), ini_get ( 'session.cookie_secure' ), ini_get ( 'session.cookie_httponly' ) );
 		}
@@ -450,6 +452,8 @@ class Http {
 			$session ["body"] = json_encode($_SESSION);
 			Session::add ( $session );
 
+			$_COOKIE [HttpCache::$sessionName] = $session_id;
+			
 			return self::setcookie ( HttpCache::$sessionName, $session_id, ini_get ( 'session.cookie_lifetime' ), ini_get ( 'session.cookie_path' ), ini_get ( 'session.cookie_domain' ), ini_get ( 'session.cookie_secure' ), ini_get ( 'session.cookie_httponly' ) );
 		}
 		HttpCache::$instance->sessionFile = $_COOKIE [HttpCache::$sessionName];
