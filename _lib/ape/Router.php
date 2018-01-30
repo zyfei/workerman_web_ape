@@ -21,7 +21,7 @@ class Router
         // 全部使用默认
         if (count($url_arr) == 0) {
             // 当前模块的路径
-            ApeWeb::$MODULE_URL = HOME . $config ["default_module"] . "/";
+            ApeWeb::$MODULE_URL = ApeWeb::$HOME . $config ["default_module"] . "/";
             ApeWeb::$MODULE_NAME = "z_" . $config ["default_module"];
 
             $module_name = "z_" . $config ["default_module"] . DS;
@@ -32,7 +32,7 @@ class Router
 		// 如果URL是一级的话，采用默认module,默认的controller,动态method
         elseif (count($url_arr) == 1) {
             // 当前模块的路径
-			ApeWeb::$MODULE_URL = HOME . $config ["default_module"] . "/";
+			ApeWeb::$MODULE_URL = ApeWeb::$HOME . $config ["default_module"] . "/";
             ApeWeb::$MODULE_NAME = "z_" . $config ["default_module"];
 
             $module_name = "z_" . $config ["default_module"] . DS;
@@ -42,7 +42,7 @@ class Router
         } // 如果url为二级的话 , 动态的controller，动态的method
         elseif (count($url_arr) == 2) {
             // 当前模块的路径
-            ApeWeb::$MODULE_URL = HOME . $config ["default_module"] . "/";
+            ApeWeb::$MODULE_URL = ApeWeb::$HOME . $config ["default_module"] . "/";
             ApeWeb::$MODULE_NAME = "z_" . $config ["default_module"];
 
             $module_name = "z_" . $config ["default_module"] . DS;
@@ -60,7 +60,7 @@ class Router
         } // 如果url为三级,三级以上的话，不能使用默认module
         elseif (count($url_arr) > 2) {
             // 当前模块的路径
-            ApeWeb::$MODULE_URL = HOME . $url_arr [0] . "/";
+            ApeWeb::$MODULE_URL = ApeWeb::$HOME . $url_arr [0] . "/";
             ApeWeb::$MODULE_NAME = "z_" . $url_arr [0];
 
             $module_name = "z_" . $url_arr [0] . DS;

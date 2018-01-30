@@ -16,5 +16,4 @@ if (strtolower ( substr ( PHP_OS, 0, 3 ) ) == 'win') {
 } else {
 	$APE["WORKERMAN"] =  'Workerman_linux';
 }
-define ( 'HOME', $APE['config'] ["home"] );
 define ( "APE", $APE );

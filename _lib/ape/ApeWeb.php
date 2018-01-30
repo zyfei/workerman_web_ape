@@ -23,6 +23,7 @@ class ApeWeb extends Worker
     private $_sendfile;
     public static $mysqls;
     public static $view;
+    public static $HOME;
     public static $MODULE_URL;
     public static $MODULE_NAME;
     public static $SEND_BODY;
@@ -140,6 +141,7 @@ class ApeWeb extends Worker
      */
     public function onMessage($connection, $data)
     {
+        ApeWeb::$HOME = "http://".$_SERVER['HTTP_HOST']."/";
         // 初始化SEND_BODY
         ApeWeb::$SEND_BODY = "";
         $this->access_log [0] = $_SERVER ["REMOTE_ADDR"];

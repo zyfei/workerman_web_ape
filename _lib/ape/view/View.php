@@ -173,7 +173,7 @@ class View
         $this->compileDir(RUN_DIR . ApeWeb::$MODULE_NAME . "/" . 'storage/views/');
 
         $this->vars = $vars;
-        $this->vars ["HOME"] = HOME;
+        $this->vars ["HOME"] = ApeWeb::$HOME;
         $this->vars ["MODULE_URL"] = ApeWeb::$MODULE_URL;
 
         $ret = $this->display($tpl);
