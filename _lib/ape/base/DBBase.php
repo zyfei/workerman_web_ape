@@ -4,7 +4,7 @@ namespace ape\base;
 use ape\ApeWeb;
 
 /**
- * 数据库封装,不用orm，api追求性能
+ * 数据库封装
  */
 class DBBase
 {
@@ -162,12 +162,12 @@ class DBBase
                 return $mysql ->cache->$_key;
             }
         }
-        $where = "id='$id'";
 
+        $q = $mysql->select('*')->from(static::$table);
         if (static::$softDelete) {
-            $where = "$where and " . self::$deleted_at . " is null";
+            $q->where(self::$deleted_at . " is null");
         }
-        $res = $mysql->row("SELECT * FROM `" . static::$table . "` WHERE $where");
+        $res = $q->where('id= :id')->bindValues(array('id'=>$id))->row();
         if ($res) {
             // 将数据存入缓存
             if ($mysql ->cache != null) {
@@ -187,11 +187,11 @@ class DBBase
     {
         $db_name = static::$db_name;
         $mysql = ApeWeb::$mysqls[$db_name];
-
+        $mysql->query("SELECT * FROM t_admin WHERE id=:id ",array('id' => "1"));
         if (static::$softDelete) {
             $where = "$where and " . self::$deleted_at . " is null";
         }
-        $arr = $mysql->query("select * FROM `" . static::$table . "` where $where order by $order");
+        $arr = $mysql-> ("select * FROM `" . static::$table . "` where $where order by $order");
         if ($arr == null) {
             return array();
         } else {
@@ -246,4 +246,11 @@ class DBBase
         }
         return $arr;
     }
+
+    /**
+     * 传入正常where串，这个方法会将串分割成预编译模式的sql
+     */
+    protected static function getWhereKeyValue($sql){
+
+    }   
 }

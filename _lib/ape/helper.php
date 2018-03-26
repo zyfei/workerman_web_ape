@@ -125,7 +125,6 @@ function api($msg, $code, $content) {
 	Http::header ( "Content-type: application/json" );
 	$arr ["msg"] = $msg;
 	$arr ["code"] = $code;
-	$content = json_int_to_string ( $content );
 	$arr ["content"] = $content;
 	ApeWeb::$SEND_BODY = ApeWeb::$SEND_BODY . json_encode ( $arr );
 	return true;

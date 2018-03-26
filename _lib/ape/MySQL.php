@@ -1888,7 +1888,6 @@ class MySQL
 
         $this->resetAll();
         $this->lastSql = $query;
-
         $this->execute($query, $params);
         return $this->sQuery->fetch($fetchmode);
     }
